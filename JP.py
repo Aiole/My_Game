@@ -17,21 +17,7 @@ hor_vis_num_h = 7
 ver_vis_num_l = 0
 hor_vis_num_l = 0
 
-player_2_ver = random.randrange(12,20)
-player_2_hor = random.randrange(12,20)
-player_3_ver = random.randrange(12,20)
-player_3_hor = random.randrange(12,20)
-player_4_ver = random.randrange(12,20)
-player_4_hor = random.randrange(12,20)
-player_5_ver = random.randrange(12,20)
-player_5_hor = random.randrange(12,20)
-player_6_ver = random.randrange(12,20)
-player_6_hor = random.randrange(12,20)
-player_7_ver = random.randrange(12,20)
-player_7_hor = random.randrange(12,20)
 
-
-cord_list=[0]*7
 
 
 map = np.chararray((100,100), unicode = True)
@@ -57,9 +43,25 @@ exp = 0
 attack_level = 1
 player_level = 0
 attack_list = ['heal','hit','hit hard']
+cords = [0,0]
 
-info = [attack_level,exp,attack_list]*7
 
+a = input('Enter the number of players: ')
+a = 7
+
+info = [attack_level,exp,attack_list,cords]*a
+
+
+
+a -= 1
+dup_a = a
+
+while a >= 0:
+	ver = random.randrange(0,99)
+	hor = random.randrange(0,99)
+	cords = [ver,hor]
+	info[a] = [attack_level,exp,attack_list,cords]
+	a -= 1
 
 
 print('The A is you..')
@@ -93,14 +95,13 @@ def check_neighbors_npc(cords,count,info):
 	hor_cord = cords[1]
 	if map[ver_cord + 1][hor_cord] == 'B' or map[ver_cord][hor_cord + 1] == 'B' or map[ver_cord + 1][hor_cord + 1] == 'B' or map[ver_cord - 1][hor_cord] == 'B' or map[ver_cord][hor_cord - 1] == 'B' or map[ver_cord - 1][hor_cord - 1] == 'B' or map[ver_cord - 1][hor_cord + 1] == 'B' or map[ver_cord + 1][hor_cord - 1] == 'B':
 		print("encounter")
-		player_cord_list = cord_list(count,cords)
-		enemy_count = check_positions(cords, player_cord_list)
+		enemy_count = check_positions(cords, info[3])
 		enemy_info = info[enemy_count]
 		your_info = info[count]
 		y_exp, e_exp = npc_battle(info,enemy_info)
 		y_player_level = math.floor(y_exp / 2)
 		y_attack_level = (y_player_level * .5) + 1
-		store_info(y_attack_level,y_exp,info[count][2],count)
+		info[count] = [y_attack_level,y_exp,info[count][2],]
 		e_player_level = math.floor(e_exp / 2)
 		e_attack_level = (e_player_level * .5) + 1
 		store_info(e_attack_level,e_exp,info[count][2],enemy_count)
@@ -255,20 +256,14 @@ def battle(player_health,attack_list,player_attack,exp):
 
 	return exp
 
-	
-
-def player_cord_list(count,cords):
-	
-	cord_list[count] = cords
-	return cord_list
 
 
 
-def check_positions(your_cords, player_cord_list):
+def check_positions(your_cords, all_cords):
 	
 	count = 0;
 
-	for x in player_cord_list:
+	for x in all_cords:
 
 		if your_cords != x and (x[0] - your_cords[0]) <= 1 and (x[0] - your_cords[0]) >=  -1 and (x[1] - your_cords[1]) <= 1 and (x[1] - your_cords[1]) >=  -1:
 			return count
@@ -277,87 +272,60 @@ def check_positions(your_cords, player_cord_list):
 	
 	
 
-def store_info(attack_level,exp,attack_list,count):
-	info[count]= [attack_level,exp,attack_list]
-	return info
-	
 
 
-
-def move_player_2(player_2_ver, player_2_hor,count,info):
+def move_other_player(count,info):
 
 	player_2 = 'B'
 
 
 	choice = random.randrange(1,5)
 	
-	player_2_ver_l = player_2_ver - 7
-	player_2_hor_l = player_2_hor - 7
+	
 		
-	m_ver_vis_num_2 = int((player_2_ver + player_2_ver_l) / 2)
-	m_hor_vis_num_2 = int((player_2_hor + player_2_hor_l) / 2)
+	cords = info[3]
 	
 	
 
 	if choice == 1:
 		
-		if m_ver_vis_num_2 > 0:
-			map[m_ver_vis_num_2][m_hor_vis_num_2] = 'O'
-			player_2_ver -= 1
-			player_2_ver_l -= 1
+		if cords[0] > 0:
+			map[cords[0]][cords[1]] = 'O'
+			cords[0] -= 1
 
 
 	if choice == 2:
 
-		if m_ver_vis_num_2 < 99:
-			map[m_ver_vis_num_2][m_hor_vis_num_2] = 'O'
-			player_2_ver += 1
-			player_2_ver_l += 1
+		if cords[0] < 99:
+			map[cords[0]][cords[1]] = 'O'
+			cords[0] += 1
 
 	if choice == 3:
 
-		if m_hor_vis_num_2 > 0:
-			map[m_ver_vis_num_2][m_hor_vis_num_2] = 'O'
-			player_2_hor -= 1
-			player_2_hor_l -= 1
+		if cords[1] > 0:
+			map[cords[0]][cords[1]] = 'O'
+			cords[1] -= 1
 
 	if choice == 4:
 
-		if m_hor_vis_num_2 < 99:
-			map[m_ver_vis_num_2][m_hor_vis_num_2] = 'O'
-			player_2_hor += 1
-			player_2_hor_l += 1
+		if cords[1] < 99:
+			map[cords[0]][cords[1]] = 'O'
+			cords[1] += 1
 
 	
 
-	m_ver_vis_num_2 = int((player_2_ver + player_2_ver_l) / 2)
-	m_hor_vis_num_2 = int((player_2_hor + player_2_hor_l) / 2)
-
+	info = [attack_level,exp,attack_list,cords]
 
 	map[m_ver_vis_num_2][m_hor_vis_num_2] = 'B'
+
+	cords = [m_ver_vis_num_2,m_hor_vis_num_2]
 	
-	check_neighbors_npc()
+	check_neighbors_npc(cords,count,info)
 
 	store_info(attack_level,exp,count,player_level)
 	
-	return player_2_ver, player_2_hor
+	return info
 
-
-'''
-count = 0
-player_2_ver, player_2_hor = move_player_2(player_2_ver, player_2_hor,count,info)
-count += 1
-player_3_ver, player_3_hor = move_player_2(player_3_ver, player_3_hor,count)
-count += 1
-player_4_ver, player_4_hor = move_player_2(player_4_ver, player_4_hor,count)
-count += 1
-player_5_ver, player_5_hor = move_player_2(player_5_ver, player_5_hor,count)
-count += 1
-player_6_ver, player_6_hor = move_player_2(player_6_ver, player_6_hor,count)
-count += 1
-player_7_ver, player_7_hor = move_player_2(player_7_ver, player_7_hor,count)
-count += 1
-'''
 
 
 while 1:
@@ -406,13 +374,14 @@ while 1:
 	m_ver_vis_num = int((ver_vis_num_h + ver_vis_num_l) / 2)
 	m_hor_vis_num = int((hor_vis_num_h + hor_vis_num_l) / 2)
 	player_cords = [m_ver_vis_num,m_hor_vis_num]
-
-	player_2_ver, player_2_hor = move_player_2(player_2_ver, player_2_hor,0,info)
-	player_3_ver, player_3_hor = move_player_2(player_3_ver, player_3_hor,1,info)
-	player_4_ver, player_4_hor = move_player_2(player_4_ver, player_4_hor,2,info)
-	player_5_ver, player_5_hor = move_player_2(player_5_ver, player_5_hor,3,info)
-	player_6_ver, player_6_hor = move_player_2(player_6_ver, player_6_hor,4,info)
-	player_7_ver, player_7_hor = move_player_2(player_7_ver, player_7_hor,5,info)
+	
+	
+	a = dup_a
+	
+	while a >= 0:
+		info = move_other_player(a,info)
+		a-=1
+	
 
 	prev_lvl = player_level
 
