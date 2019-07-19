@@ -35,6 +35,12 @@ player_level = 0
 attack_list = ['heal','hit','hit hard']
 cords = [10,10]
 start_spawn = [10,10]
+axe = ['axe',random.randrange(1,20)]
+sword = ['sword',random.randrange(1,20)]
+shield = ['shield',random.randrange(1,20)]
+weapons = [axe,sword]
+armor = [shield]
+items = [weapons,armor]
 
 
 vision = map[cords[0]-3:cords[0]+4, cords[1]-3:cords[1]+4]
@@ -47,6 +53,11 @@ print(vision)
 player = 'A'
 
 
+
+def swap_pos(list, pos1, pos2): 
+      
+    list[pos1], list[pos2] = list[pos2], list[pos1] 
+    return list
 
 
 def check_positions(your_cords, info):
@@ -73,7 +84,7 @@ def initialize(a, info):
 	if not check_positions(cords,info):
 		map[cords[0]][cords[1]] = 'B'
 		start_spawn = cords
-		info[a] = [attack_level,exp,attack_list,cords,start_spawn]
+		info[a] = [attack_level,exp,attack_list,cords,start_spawn,items]
 		return info
 	else:
 		return initialize(a,info)
@@ -85,7 +96,7 @@ a = input('Enter the number of players: ')
 a = int(a)
 
 
-info = [[attack_level,exp,attack_list,cords,start_spawn]]*a
+info = [[attack_level,exp,attack_list,cords,start_spawn,items]]*a
 
 a -= 1
 dup_a = a
@@ -375,6 +386,62 @@ def battle(your_info,enemy_info):
 
 
 
+def open_inv(info):
+
+	items = info[0][5]
+		
+	player_input = input('Welcome to your inventory please enter one of the following weapons or armor: ')
+	
+	if player_input == "weapons":
+
+		player_input = input('Do you want to discard or equip? ')
+
+		if player_input == "equip":	
+
+			while 1:
+				player_input = input('Enter which weapon you would like to equip or type quit ' + str(items[0]) + ': ')
+
+				if any(player_input in str for str in items[0]):
+					print(str(player_input) + ' equipped')
+					break
+
+				if player_input == 'quit':
+					break
+			
+		if player_input == "discard":		
+
+			while 1:
+				
+				try:			
+			
+					player_input = input("Enter the weapon's number you would like to discard starting from one or type quit " + str(items[0]) + ': ')
+					player_input = int(player_input)				
+					
+				except ValueError:
+					player_input = input('Please enter a number: ' + str(items[0]) + ': ')
+					player_input = int(player_input)
+
+				if player_input - 1 < len(items[0]):
+					print(str(items[0][player_input - 1]) + ' discarded')
+					items[0].pop(player_input - 1)
+					break
+
+				if player_input == 'quit':
+					break
+		
+	if player_input == "armor":
+		while 1:
+			player_input = input('Enter which piece of armor you would like to equip or type quit ' + str(items[1]) + ': ')
+
+			if any(player_input in str for str in items[1]):
+				print(str(player_input) + ' equipped')
+				break
+
+			if player_input == 'quit':
+				break
+	
+	return info
+
 
 def move_other_player(count,info):
 
@@ -461,6 +528,10 @@ while 1:
 
 	if player_input == "map":
 		print(map[40:70, 40:70])
+
+
+	if player_input == "inv":
+		info = open_inv(info)
 
 	info[0][3] = cords	
 	
