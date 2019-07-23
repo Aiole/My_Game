@@ -8,7 +8,7 @@
 import numpy as np
 import random
 import math
-
+import csv
 
 print('Hello traveler')
 
@@ -37,9 +37,10 @@ cords = [10,10]
 start_spawn = [10,10]
 axe = ['axe',random.randrange(1,20)]
 sword = ['sword',random.randrange(1,20)]
-shield = ['shield',random.randrange(1,20)]
+chainbody = ['chainbody',random.randrange(1,20)]
+platemale = ['platemale',random.randrange(1,20)]
 weapons = [axe,sword]
-armor = [shield]
+armor = [chainbody,platemale]
 items = [weapons,armor]
 
 
@@ -76,18 +77,34 @@ def check_positions(your_cords, info):
 	return False
 
 
-def initialize(a, info):
 
+
+lines = open('adjectives.csv').read().splitlines()
+
+def rand_adj(lines):
+	r = random.randrange(1,28475)
+	return lines[r]
+
+
+def initialize(a, info, lines):
 	ver = random.randrange(1,98)
 	hor = random.randrange(1,98)
 	cords = [ver,hor]
+	axe = [rand_adj(lines) + ' axe', random.randrange(1,20)]
+	sword = [rand_adj(lines) + ' sword', random.randrange(1,20)]
+	chainbody = [rand_adj(lines) + ' chainbody', random.randrange(1,20)]
+	platemale = [rand_adj(lines) + ' platemale', random.randrange(1,20)]
+	weapons = [axe,sword]
+	armor = [chainbody,platemale]
+	items = [weapons,armor]
+
 	if not check_positions(cords,info):
 		map[cords[0]][cords[1]] = 'B'
 		start_spawn = cords
 		info[a] = [attack_level,exp,attack_list,cords,start_spawn,items]
 		return info
 	else:
-		return initialize(a,info)
+		return initialize(a,info,lines)
 
 
 
@@ -103,7 +120,7 @@ dup_a = a
 
 while a > 0:
 
-	info = initialize(a,info)
+	info = initialize(a,info,lines)
 	a -= 1
 
 
@@ -132,32 +149,8 @@ def check_neighbors(info,count):
 
 		print("encounter")
 		enemy_count = check_positions(cords, info)
-		enemy_info = info[enemy_count]
-		your_info = info[count]
 
-		p_exp, e_exp = battle(your_info,enemy_info)
-
-		if(p_exp == 0):
-			map[cords[0]][cords[1]] = 'O'
-			info.pop(count)
-			e_player_level = math.floor(e_exp / 2)
-			e_attack_level = (e_player_level * .5) + 1
-			info[enemy_count][0] = e_attack_level
-			info[enemy_count][1] = e_exp
-			info.pop(count)
-
-			#info[count][3] = info[count][4]
-
-		if(e_exp == 0):
-			enemy_cords = info[enemy_count][3]
-			map[enemy_cords[0]][enemy_cords[1]] = 'O'
-			p_player_level = math.floor(p_exp / 2)
-			p_attack_level = (p_player_level * .5) + 1
-			info[count][0] = p_attack_level
-			info[count][1] = p_exp
-			info.pop(enemy_count)
-			#info[enemy_count][3] = info[enemy_count][4]
-
+		info = battle(info,enemy_count)
 
 
 	return info
@@ -172,50 +165,28 @@ def check_neighbors_npc(cords,count,info):
 
 		print("npc_encounter")
 		enemy_count = check_positions(cords, info)
-		enemy_info = info[enemy_count]
-		your_info = info[count]
-
-		y_exp, e_exp = npc_battle(your_info,enemy_info)
+		info = npc_battle(info,count,enemy_count)
 		
-		print(math.floor(y_exp / 2))
-		print(math.floor(e_exp / 2))
-
-		if y_exp == 0:
-			map[cords[0]][cords[1]] = 'O'
-			e_player_level = math.floor(e_exp / 2)
-			e_attack_level = (e_player_level * .5) + 1
-			info[enemy_count][0] = e_attack_level
-			info[enemy_count][1] = e_exp
-			info.pop(count)
-			#info[count][3] = info[count][4]
-
-
-		if e_exp == 0:
-			enemy_cords = info[enemy_count][3]
-			map[enemy_cords[0]][enemy_cords[1]] = 'O'
-			y_player_level = math.floor(y_exp / 2)
-			y_attack_level = (y_player_level * .5) + 1
-			info[count][0] = y_attack_level
-			info[count][1] = y_exp
-			info.pop(enemy_count)
-			#info[enemy_count][3] = info[enemy_count][4]
-
-		
-		print('PLayers remaining: ' + str(len(info)))
+		print('Players remaining: ' + str(len(info)))
 		
 	return info
 
-def npc_battle(your_info,enemy_info):
+	
 
-	y_attack_list = your_info[2]
-	e_attack_list = enemy_info[2]
-	y_exp = your_info[1]
-	e_exp = enemy_info[1]
-	y_attack_level = your_info[0]
-	e_attack_level = enemy_info[0]			
 
-	npc_health = 10	
-	enemy_health = 10
+def npc_battle(info,count,enemy_count):
+
+	y_attack_list = info[count][2]
+	e_attack_list = info[enemy_count][2]
+	y_exp = info[count][1]
+	e_exp = info[enemy_count][1]
+	y_attack_level = check_dmg(info,count)
+	print(y_attack_level)
+	e_attack_level = check_dmg(info,enemy_count)
+	print(e_attack_level)		
+
+	npc_health = 20	
+	enemy_health = 20
 
 	
 	while 1:
@@ -224,7 +195,7 @@ def npc_battle(your_info,enemy_info):
 
 
 		if attack_choice == 1:
-				npc_health += 1
+				enemy_health -= y_attack_level
 		
 		if attack_choice == 2:
 				enemy_health -= y_attack_level
@@ -251,7 +222,7 @@ def npc_battle(your_info,enemy_info):
 
 
 		if attack_choice == 1:
-				enemy_health += 1
+				npc_health -= e_attack_level
 		
 		if attack_choice == 2:
 				npc_health -= e_attack_level
@@ -277,16 +248,37 @@ def npc_battle(your_info,enemy_info):
 		
 		
 
+	if(y_exp == 0):
+		map[cords[0]][cords[1]] = 'O'
+		e_player_level = math.floor(e_exp / 2)
+		e_attack_level = (e_player_level * .5) + 1
+		info[enemy_count][0] = e_attack_level
+		info[enemy_count][1] = e_exp
+		info[enemy_count][5][0].extend(info[count][5][0])
+		info.pop(count)
 
-	return y_exp, e_exp
+
+	if(e_exp == 0):
+		enemy_cords = info[enemy_count][3]
+		map[enemy_cords[0]][enemy_cords[1]] = 'O'
+		y_player_level = math.floor(y_exp / 2)
+		y_attack_level = (y_player_level * .5) + 1
+		info[count][0] = y_attack_level
+		info[count][1] = y_exp
+		info[count][5][0].extend(info[enemy_count][5][0])
+		info.pop(enemy_count)
+		
+
+
+	return info
 
 
 
 
 
-def battle(your_info,enemy_info):
 
-	enemy_health = 10
+def battle(info,enemy_count):
+
 	
 	print("""\
 
@@ -298,15 +290,16 @@ def battle(your_info,enemy_info):
                     """)
 		
 
-	p_attack_list = your_info[2]
-	e_attack_list = enemy_info[2]
-	p_exp = your_info[1]
-	e_exp = enemy_info[1]
-	p_attack_level = your_info[0]
-	e_attack_level = enemy_info[0]			
+	
+	y_attack_list = info[0][2]
+	e_attack_list = info[enemy_count][2]
+	y_exp = info[0][1]
+	e_exp = info[enemy_count][1]
+	y_attack_level = check_dmg(info,0)
+	e_attack_level = check_dmg(info,enemy_count)			
 
-	player_health = 10	
-	enemy_health = 10
+	player_health = 20	
+	enemy_health = 20
 	
 	while player_health > 0 and enemy_health > 0:
 
@@ -314,13 +307,13 @@ def battle(your_info,enemy_info):
 		attack_input = input(attack_list)
 	
 		if attack_input == 'hit':
-			enemy_health -= p_attack_level
+			enemy_health -= y_attack_level
 	
 		if attack_input == 'heal':
 			player_health += 1
 
 		if attack_input == 'hit hard':
-			enemy_health -= p_attack_level * 2
+			enemy_health -= y_attack_level * 2
 
 		print('your enemies health: ')
 		print(enemy_health)
@@ -339,7 +332,7 @@ def battle(your_info,enemy_info):
 
 
 		if attack_choice == 1:
-				enemy_health += 1
+				player_health -= e_attack_level
 		
 		if attack_choice == 2:
 				player_health -= e_attack_level
@@ -366,25 +359,54 @@ def battle(your_info,enemy_info):
 	
 
 	if player_health <= 0:
-		e_exp += (p_exp / 2) + 1
-		p_exp = 0
+		e_exp += (y_exp / 2) + 1
+		y_exp = 0
 		print("Player Loses")
 			
 		
 
 	if enemy_health <= 0:
-		p_exp += (e_exp / 2) + 1
+		y_exp += (e_exp / 2) + 1
 		e_exp = 0
 		print("Player Wins")
 		
 		
 
+	if(y_exp == 0):
+		map[cords[0]][cords[1]] = 'O'
+		e_player_level = math.floor(e_exp / 2)
+		e_attack_level = (e_player_level * .5) + 1
+		info[enemy_count][0] = e_attack_level
+		info[enemy_count][1] = e_exp
+		info[enemy_count][5][0].extend(info[0][5][0])
+		info.pop(0)
 
-	return p_exp, e_exp
+
+	if(e_exp == 0):
+		enemy_cords = info[enemy_count][3]
+		map[enemy_cords[0]][enemy_cords[1]] = 'O'
+		y_player_level = math.floor(y_exp / 2)
+		y_attack_level = (y_player_level * .5) + 1
+		info[0][0] = y_attack_level
+		info[0][1] = y_exp
+		info[0][5][0].extend(info[enemy_count][5][0])
+		info.pop(enemy_count)
+		
 
 
 
+	return info
 
+
+
+def check_dmg(info,count):
+	
+	exp = info[count][1]		
+	level = math.floor(exp / 2)
+	weapon = info[count][5][0][0][1]	
+	
+	dmg = (level * .35) + (weapon * .1)
+	return dmg
 
 def open_inv(info):
 
@@ -401,9 +423,22 @@ def open_inv(info):
 			while 1:
 				player_input = input('Enter which weapon you would like to equip or type quit ' + str(items[0]) + ': ')
 
-				if any(player_input in str for str in items[0]):
-					print(str(player_input) + ' equipped')
-					break
+				a = 0
+				for weapon in items[0]:
+					print(weapon)
+					print(str(player_input))
+					if (str(player_input) in weapon):			
+						items[0][a] = items[0][0]
+						items[0][0] = weapon
+						if(a == 0):
+							print(str(player_input) + ' already equipped')
+							break						
+	
+						else:		
+							print(str(player_input) + ' equipped')
+							break
+
+					a+=1
 
 				if player_input == 'quit':
 					break
@@ -498,7 +533,7 @@ while 1:
 
 	player_input = input("Enter up, down, right, left to move or enter look to recenter screen: ")
 
-	player_health = 10
+	player_health = 20
 	attack_list = ['heal','hit','hit hard']
 	
 	cords = info[0][3]
