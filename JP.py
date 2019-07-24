@@ -181,9 +181,10 @@ def npc_battle(info,count,enemy_count):
 	y_exp = info[count][1]
 	e_exp = info[enemy_count][1]
 	y_attack_level = check_dmg(info,count)
-	print(y_attack_level)
+	y_def = check_def(info,count)
 	e_attack_level = check_dmg(info,enemy_count)
-	print(e_attack_level)		
+	e_def = check_def(info,enemy_count)
+		
 
 	npc_health = 20	
 	enemy_health = 20
@@ -195,14 +196,14 @@ def npc_battle(info,count,enemy_count):
 
 
 		if attack_choice == 1:
-				enemy_health -= y_attack_level
+				enemy_health -= y_attack_level / e_def
 		
 		if attack_choice == 2:
-				enemy_health -= y_attack_level
+				enemy_health -= y_attack_level / e_def
 	
 
 		if attack_choice == 3:
-				enemy_health -= 2 * y_attack_level
+				enemy_health -= 2 * y_attack_level / e_def
 		
 	
 		if npc_health <= 0:
@@ -222,14 +223,14 @@ def npc_battle(info,count,enemy_count):
 
 
 		if attack_choice == 1:
-				npc_health -= e_attack_level
+				npc_health -= e_attack_level / y_def
 		
 		if attack_choice == 2:
-				npc_health -= e_attack_level
+				npc_health -= e_attack_level / y_def
 	
 
 		if attack_choice == 3:
-				npc_health -= 2 * e_attack_level
+				npc_health -= 2 * e_attack_level / y_def
 		
 		
 		if npc_health <= 0:
@@ -297,6 +298,8 @@ def battle(info,enemy_count):
 	e_exp = info[enemy_count][1]
 	y_attack_level = check_dmg(info,0)
 	e_attack_level = check_dmg(info,enemy_count)			
+	y_def = check_def(info,0)
+	e_def = check_def(info,enemy_count)
 
 	player_health = 20	
 	enemy_health = 20
@@ -307,13 +310,13 @@ def battle(info,enemy_count):
 		attack_input = input(attack_list)
 	
 		if attack_input == 'hit':
-			enemy_health -= y_attack_level
+			enemy_health -= y_attack_level / e_def
 	
 		if attack_input == 'heal':
 			player_health += 1
 
 		if attack_input == 'hit hard':
-			enemy_health -= y_attack_level * 2
+			enemy_health -= (y_attack_level * 2) / e_def
 
 		print('your enemies health: ')
 		print(enemy_health)
@@ -332,14 +335,14 @@ def battle(info,enemy_count):
 
 
 		if attack_choice == 1:
-				player_health -= e_attack_level
+				player_health -= e_attack_level / y_def
 		
 		if attack_choice == 2:
-				player_health -= e_attack_level
+				player_health -= e_attack_level / y_def
 	
 
 		if attack_choice == 3:
-				player_health -= e_attack_level*2
+				player_health -= (e_attack_level*2) / y_def 
 	
 
 		print("enemy used:")
@@ -390,6 +393,7 @@ def battle(info,enemy_count):
 		info[0][0] = y_attack_level
 		info[0][1] = y_exp
 		info[0][5][0].extend(info[enemy_count][5][0])
+		info[0][5][1].extend(info[enemy_count][5][1])
 		info.pop(enemy_count)
 		
 
@@ -408,72 +412,143 @@ def check_dmg(info,count):
 	dmg = (level * .35) + (weapon * .1)
 	return dmg
 
+
+def check_def(info,count):
+	
+	armor = info[count][5][1][0][1]	
+	defe = (armor / 20) + 1
+	return defe
+
+
+def equip(items,num):
+
+	player_input = input('Enter which weapon you would like to equip ' + str(items[num]) + ': ')
+
+
+	if player_input == 'back':
+		return items,0
+
+
+	if player_input == 'quit':
+		return items,1
+
+	a = 0
+	for weapon in items[num]:
+
+		if (str(player_input) in weapon):			
+			items[num][a] = items[num][0]
+			items[num][0] = weapon
+			if(a == 0):
+				print(str(player_input) + ' already equipped')
+				return equip(items,num)						
+	
+			else:		
+				print(str(player_input) + ' equipped')
+				return equip(items,num)
+
+		a+=1
+			
+
+					
+
+	return equip(items,num)
+
+
+def discard(items,num):
+
+	
+	try:				
+		player_input = input("Enter the weapon's number you would like to discard starting from one " + str(items[num]) + ': ')
+		
+		if player_input == 'quit':
+			return items,1
+	
+		if player_input == 'back':
+			return items,0
+
+		player_input = int(player_input)				
+					
+	except ValueError:
+		player_input = input('Please enter a number: ' + str(items[num]) + ': ')
+		player_input = int(player_input)
+
+	if len(items[num]) == 1:
+		print('You can not discard any more items please enter back or quit')
+		return discard(items,num)
+
+	if player_input - 1 < len(items[num]):
+		print(str(items[num][player_input - 1]) + ' discarded')
+		items[num].pop(player_input - 1)
+		return discard(items,num)
+
+def dis_or_equ(items,num):
+
+	quit = 0
+
+	player_input = input('Do you want to discard or equip? ')
+
+	if player_input == "equip":
+				
+		items, quit = equip(items,num)
+				
+	if player_input == "discard":		
+
+		items, quit = discard(items,num)
+		
+	if player_input == "back":
+		return items, quit
+
+	if player_input == "quit":
+		return items, 1
+		
+
+	if quit:
+		return items, quit					
+
+	if not quit:
+		return dis_or_equ(items,num)
+
+
+		
+
 def open_inv(info):
 
 	items = info[0][5]
-		
-	player_input = input('Welcome to your inventory please enter one of the following weapons or armor: ')
+	quit = 0
 	
-	if player_input == "weapons":
+	while 1:
 
-		player_input = input('Do you want to discard or equip? ')
+		player_input = input('Welcome to your inventory please enter one of the following weapons or armor: ')
 
-		if player_input == "equip":	
-
-			while 1:
-				player_input = input('Enter which weapon you would like to equip or type quit ' + str(items[0]) + ': ')
-
-				a = 0
-				for weapon in items[0]:
-					print(weapon)
-					print(str(player_input))
-					if (str(player_input) in weapon):			
-						items[0][a] = items[0][0]
-						items[0][0] = weapon
-						if(a == 0):
-							print(str(player_input) + ' already equipped')
-							break						
-	
-						else:		
-							print(str(player_input) + ' equipped')
-							break
-
-					a+=1
-
-				if player_input == 'quit':
-					break
+		if player_input == "weapons":
 			
-		if player_input == "discard":		
+			num = 0
 
-			while 1:
+			items, quit = dis_or_equ(items,num)
+			
+			if quit:
+				break
 				
-				try:			
-			
-					player_input = input("Enter the weapon's number you would like to discard starting from one or type quit " + str(items[0]) + ': ')
-					player_input = int(player_input)				
-					
-				except ValueError:
-					player_input = input('Please enter a number: ' + str(items[0]) + ': ')
-					player_input = int(player_input)
-
-				if player_input - 1 < len(items[0]):
-					print(str(items[0][player_input - 1]) + ' discarded')
-					items[0].pop(player_input - 1)
-					break
-
-				if player_input == 'quit':
-					break
 		
-	if player_input == "armor":
-		while 1:
-			player_input = input('Enter which piece of armor you would like to equip or type quit ' + str(items[1]) + ': ')
 
-			if any(player_input in str for str in items[1]):
-				print(str(player_input) + ' equipped')
+
+		if player_input == "armor":
+
+			num = 1
+
+			items, quit = dis_or_equ(items,num)
+			
+			if quit:
 				break
 
-			if player_input == 'quit':
-				break
+
+		if player_input == "quit":
+			break
+			
+
+		if player_input == "back":
+			break
+
 	
 	return info
 
