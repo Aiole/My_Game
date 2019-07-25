@@ -9,6 +9,8 @@ import numpy as np
 import random
 import math
 import csv
+from Map import road
+
 
 print('Hello traveler')
 
@@ -17,24 +19,30 @@ hor_vis_num_h = 7
 ver_vis_num_l = 0
 hor_vis_num_l = 0
 
+b = input('Enter the Map Size: ')
+b = int(b)
 
 
+map = np.chararray((b,b), unicode = True)
 
-map = np.chararray((100,100), unicode = True)
+map[:] = '0'
 
-map[:] = 'O'
+map[0,:] = 'X'
 
-map[0,:] = 'H'
+map[:,0] = 'X'
 
-map[:,0] = 'H'
+map[b-1,:] = 'X'
 
+map[:,b-1] = 'X'
+
+map = road(map,b)
 
 exp = 0
 attack_level = 1
 player_level = 0
 attack_list = ['heal','hit','hit hard']
-cords = [10,10]
-start_spawn = [10,10]
+cords = [5,5]
+start_spawn = [5,5]
 axe = ['axe',random.randrange(1,20)]
 sword = ['sword',random.randrange(1,20)]
 chainbody = ['chainbody',random.randrange(1,20)]
@@ -42,6 +50,7 @@ platemale = ['platemale',random.randrange(1,20)]
 weapons = [axe,sword]
 armor = [chainbody,platemale]
 items = [weapons,armor]
+max_cord = b
 
 
 vision = map[cords[0]-3:cords[0]+4, cords[1]-3:cords[1]+4]
@@ -86,9 +95,9 @@ def rand_adj(lines):
 	return lines[r]
 
 
-def initialize(a, info, lines):
-	ver = random.randrange(1,98)
-	hor = random.randrange(1,98)
+def initialize(a, b, info, lines):
+	ver = random.randrange(1,b-2)
+	hor = random.randrange(1,b-2)
 	cords = [ver,hor]
 	axe = [rand_adj(lines) + ' axe', random.randrange(1,20)]
 	sword = [rand_adj(lines) + ' sword', random.randrange(1,20)]
@@ -97,14 +106,15 @@ def initialize(a, info, lines):
 	weapons = [axe,sword]
 	armor = [chainbody,platemale]
 	items = [weapons,armor]
+	max_cord = b
 
 	if not check_positions(cords,info):
 		map[cords[0]][cords[1]] = 'B'
 		start_spawn = cords
-		info[a] = [attack_level,exp,attack_list,cords,start_spawn,items]
+		info[a] = [attack_level,exp,attack_list,cords,start_spawn,items,max_cord]
 		return info
 	else:
-		return initialize(a,info,lines)
+		return initialize(a,b,info,lines)
 
 
 
@@ -113,14 +123,14 @@ a = input('Enter the number of players: ')
 a = int(a)
 
 
-info = [[attack_level,exp,attack_list,cords,start_spawn,items]]*a
+info = [[attack_level,exp,attack_list,cords,start_spawn,items,max_cord]]*a
 
 a -= 1
 dup_a = a
 
 while a > 0:
 
-	info = initialize(a,info,lines)
+	info = initialize(a,b,info,lines)
 	a -= 1
 
 
@@ -256,6 +266,7 @@ def npc_battle(info,count,enemy_count):
 		info[enemy_count][0] = e_attack_level
 		info[enemy_count][1] = e_exp
 		info[enemy_count][5][0].extend(info[count][5][0])
+		info[enemy_count][5][1].extend(info[count][5][1])
 		info.pop(count)
 
 
@@ -267,6 +278,7 @@ def npc_battle(info,count,enemy_count):
 		info[count][0] = y_attack_level
 		info[count][1] = y_exp
 		info[count][5][0].extend(info[enemy_count][5][0])
+		info[count][5][1].extend(info[enemy_count][5][1])
 		info.pop(enemy_count)
 		
 
@@ -382,6 +394,7 @@ def battle(info,enemy_count):
 		info[enemy_count][0] = e_attack_level
 		info[enemy_count][1] = e_exp
 		info[enemy_count][5][0].extend(info[0][5][0])
+		info[enemy_count][5][1].extend(info[0][5][1])
 		info.pop(0)
 
 
@@ -562,32 +575,36 @@ def move_other_player(count,info):
 	
 	cords = info[count][3]
 
-	
+	max_cord = info[count][6]
 
 	if choice == 1:
 		
 		if cords[0] > 1:
-			map[cords[0]][cords[1]] = 'O'
-			cords[0] -= 1
+			if map[cords[0]-1][cords[1]] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[0] -= 1
 
 
 	if choice == 2:
 
-		if cords[0] < 98:
-			map[cords[0]][cords[1]] = 'O'
-			cords[0] += 1
+		if cords[0] < (max_cord - 2):
+			if map[cords[0]+1][cords[1]] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[0] += 1
 
 	if choice == 3:
 
 		if cords[1] > 1:
-			map[cords[0]][cords[1]] = 'O'
-			cords[1] -= 1
+			if map[cords[0]][cords[1]-1] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[1] -= 1
 
 	if choice == 4:
 
-		if cords[1] < 98:
-			map[cords[0]][cords[1]] = 'O'
-			cords[1] += 1
+		if cords[1] < (max_cord - 2):
+			if map[cords[0]][cords[1]+1] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[1] += 1
 
 	
 	
@@ -612,26 +629,31 @@ while 1:
 	attack_list = ['heal','hit','hit hard']
 	
 	cords = info[0][3]
-
+	max_cord = info[0][6]
+	
 	if player_input == "up":
 		if cords[0] > 1:
-			map[cords[0]][cords[1]] = 'O'
-			cords[0] -= 1
+			if map[cords[0]-1][cords[1]] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[0] -= 1
 
 	if player_input == "down":
-		if cords[0] < 98:
-			map[cords[0]][cords[1]] = 'O'
-			cords[0] += 1
+		if cords[0] < (max_cord - 2):
+			if map[cords[0]+1][cords[1]] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[0] += 1
 
 	if player_input == "left":
 		if cords[1] > 1:
-			map[cords[0]][cords[1]] = 'O'
-			cords[1] -= 1
+			if map[cords[0]][cords[1]-1] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[1] -= 1
 
 	if player_input == "right":
-		if cords[1] < 98:
-			map[cords[0]][cords[1]] = 'O'
-			cords[1] += 1
+		if cords[1] < (max_cord - 2):
+			if map[cords[0]][cords[1]+1] != 'X':
+				map[cords[0]][cords[1]] = 'O'
+				cords[1] += 1
 
 	if player_input == "look":
 		vision = map[cords[0]-3:cords[0]+4, cords[1]-3:cords[1]+4]
