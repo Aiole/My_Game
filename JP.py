@@ -5,6 +5,12 @@
 
 #there will be scrap mobs just like the spawning blobs in agar.io that will be easily farmable and wont move/update the game
 
+#Ai adventures who are on the same mission as you and will also be rogue like and you can interact with them
+
+#Weapons/Armor are cards and skills are static. A turn is a combination of a weapon and a skill. There will be many different skills but you can only bring a limited number of skills (3?) into each battle which you can equip in inventory.
+
+#What does fusion add besides more cards to your hand? What does it do that other card games cant? defusion and fusion skills can only be used once per turn cycle (your turn + enemies) they are infinite like hero powers. Defusion is when you use one of your skills after an opponent plays something (the possible things that can be played on your turn are: nothing which can not be defused, one card, 2 cards playing 2 cards is known as a combination/combo, 1 card 1 skill known as a fusion) you can not play a skill by itself.
+
 import numpy as np
 import random
 import math
