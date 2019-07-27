@@ -16,7 +16,7 @@ import random
 import math
 import csv
 from Map import road
-
+from random import shuffle
 
 print('Hello traveler')
 
@@ -46,7 +46,7 @@ map = road(map,b)
 exp = 0
 attack_level = 1
 player_level = 0
-attack_list = ['heal','hit','hit hard']
+attack_list = ['hone','enlighten','entrench']
 cords = [5,5]
 start_spawn = [5,5]
 axe = ['axe',random.randrange(1,20)]
@@ -309,18 +309,35 @@ def battle(info,enemy_count):
                     """)
 		
 
-	
-	y_attack_list = info[0][2]
-	e_attack_list = info[enemy_count][2]
+	y_deck = shuffle_deck(info,0)
+	e_deck = shuffle_deck(info,enemy_count)
+	y_hand = []
+	e_hand = []
+	y_skills = info[0][2]
+	e_skills = info[enemy_count][2]
 	y_exp = info[0][1]
 	e_exp = info[enemy_count][1]
 	y_attack_level = check_dmg(info,0)
 	e_attack_level = check_dmg(info,enemy_count)			
 	y_def = check_def(info,0)
 	e_def = check_def(info,enemy_count)
-
 	player_health = 20	
 	enemy_health = 20
+
+	a = 0
+
+
+	while len(y_deck) > 0 and a < 5:
+		y_hand.append(y_deck[0])
+		y_deck.pop(0)
+		a+=1
+		
+	
+	ori_hand = []
+	first_selection(ori_hand,y_hand,y_skills)
+
+
+
 	
 	while player_health > 0 and enemy_health > 0:
 
@@ -420,6 +437,135 @@ def battle(info,enemy_count):
 
 	return info
 
+
+def first_selection(ori_hand,hand,skills):
+
+	ori_hand = hand[:]
+	print ('This is your hand: ',hand)
+
+	player_input = input('Please enter the name of the item you would like to select: ')
+
+
+	a = 0
+
+	for item in hand:
+
+		if (str(player_input) in item):			
+			
+			print('you have selected ', item)
+			item_choice = item 
+			hand.pop(a)
+			return sec_selection(ori_hand,hand,skills,item_choice)			
+
+		a+=1
+
+					
+
+	return first_selection(ori_hand,hand,skills)
+
+
+def sec_selection(ori_hand,hand,skills,item_choice):
+
+	print ('This is your hand: ', hand)
+	print('These are your skills: ', skills)
+	player_input = input('Please enter a secondary selection you will have a chance to confirm your choice if you would like to use the item by itself type done: ')
+
+
+
+	if (str(player_input) == 'done'):
+
+		return confirm_attack(ori_hand,hand,skills,item_choice,'none')
+	
+
+	a = 0
+	for item in hand:
+
+		if (str(player_input) in item):			
+			
+			print('you have selected ', item)
+			print(type(item))
+			return confirm_attack(ori_hand,hand,skills,item_choice,item)			
+
+		a+=1
+
+	a = 0
+	for skill in skills:
+
+		if (str(player_input) in skill):			
+		
+			print('you have selected ', skill)
+			print(type(skill))
+			return confirm_attack(ori_hand,hand,skills,item_choice,skill)			
+
+		a+=1
+
+	
+			
+		
+
+	return sec_selection(ori_hand,hand,skills,item_choice)
+
+
+
+def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice):
+
+	#item only
+	if(sec_choice == 'none'):
+		power = item_choice[1] / 10
+		if('sword' in item_choice or 'axe' in item_choice):
+			print('The selected ability will attack for: ', power)
+			
+		
+		if('chainbody' in item_choice or 'platemale' in item_choice):
+			print('The selected ability will increase defence by: ', power)
+		
+		while(1):
+			player_input = input('type either confirm, restart to rechoose an initial item or back to rechoose a secondary item or skill: ')
+			
+			if(str(player_input) == 'confirm'):
+				return item_choice
+
+			if(str(player_input) == 'back'):
+				return sec_selection(ori_hand,hand,skills,item_choice)
+			
+			if(str(player_input) == 'restart'):
+				return first_selection(ori_hand,ori_hand,skills)
+				
+
+	#item + item combination
+	if(type(sec_choice) == list):
+		
+
+
+
+	#item + item combination
+	if(type(sec_choice) == str):
+		
+
+
+	return sec_selection(ori_hand,hand,skills,item_choice)
+
+
+
+def check_ability(item,sec_choice):
+
+	attack = 0
+	defence = 0
+	healing = 0
+	buff = []
+	debuff = []
+
+	ability_list = []
+
+	if(sec_choice == 'none'):
+
+		power = item_choice[1] / 10
+		if('sword' in item_choice or 'axe' in item_choice):
+			
+			
+		
+		if('chainbody' in item_choice or 'platemale' in item_choice):
+			print('The selected ability will increase defence by: ', power)
 
 
 def check_dmg(info,count):
@@ -626,13 +772,23 @@ def move_other_player(count,info):
 
 
 
+def shuffle_deck(info,count):
+	
+	deck = info[count][5][0] + info[count][5][1]	
+	deck = random.sample(deck, len(deck))
+	return deck
+	
+	
+
+
+
 while 1:
 
 
 	player_input = input("Enter up, down, right, left to move or enter look to recenter screen: ")
 
 	player_health = 20
-	attack_list = ['heal','hit','hit hard']
+	attack_list = ['hone','enlighten','entrench']
 	
 	cords = info[0][3]
 	max_cord = info[0][6]
