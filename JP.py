@@ -94,7 +94,7 @@ def check_positions(your_cords, info):
 
 
 
-lines = open('adjectives.csv').read().splitlines()
+lines = open('adjectives.txt').read().splitlines() #txt or csv depending on version
 
 def rand_adj(lines):
 	r = random.randrange(1,28475)
@@ -333,8 +333,9 @@ def battle(info,enemy_count):
 		a+=1
 		
 	
+	ability = []
 	ori_hand = []
-	first_selection(ori_hand,y_hand,y_skills)
+	ability = first_selection(ori_hand,y_hand,y_skills)
 
 
 
@@ -474,7 +475,7 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 
 	if (str(player_input) == 'done'):
 
-		return confirm_attack(ori_hand,hand,skills,item_choice,'none')
+		return confirm_attack(ori_hand,hand,skills,item_choice,'None')
 	
 
 	a = 0
@@ -510,20 +511,20 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice):
 
 	#item only
-	if(sec_choice == 'none'):
+	if(sec_choice == 'None'):
 		power = item_choice[1] / 10
-		if('sword' in item_choice or 'axe' in item_choice):
+		if(card_type(item_choice) == 'weapon'):
 			print('The selected ability will attack for: ', power)
 			
 		
-		if('chainbody' in item_choice or 'platemale' in item_choice):
+		if(card_type(item_choice) == 'armor'):
 			print('The selected ability will increase defence by: ', power)
 		
 		while(1):
 			player_input = input('type either confirm, restart to rechoose an initial item or back to rechoose a secondary item or skill: ')
 			
 			if(str(player_input) == 'confirm'):
-				return item_choice
+				return [item_choice, sec_choice]
 
 			if(str(player_input) == 'back'):
 				return sec_selection(ori_hand,hand,skills,item_choice)
@@ -536,11 +537,24 @@ def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice):
 	if(type(sec_choice) == list):
 		
 
+		while(1):
+			player_input = input('type either confirm, restart to rechoose an initial item or back to rechoose a secondary item or skill: ')
+			
+			if(str(player_input) == 'confirm'):
+				return check_ability()
 
-
-	#item + item combination
-	if(type(sec_choice) == str):
+			if(str(player_input) == 'back'):
+				return sec_selection(ori_hand,hand,skills,item_choice)
+			
+			if(str(player_input) == 'restart'):
+				return first_selection(ori_hand,ori_hand,skills)
 		
+
+
+
+	#item + skill combination
+	if(type(sec_choice) == str):
+		p
 
 
 	return sec_selection(ori_hand,hand,skills,item_choice)
@@ -554,18 +568,35 @@ def check_ability(item,sec_choice):
 	healing = 0
 	buff = []
 	debuff = []
-
+	power1 = item[1] / 10
+	power2 = sec_choice[1] / 10
 	ability_list = []
 
-	if(sec_choice == 'none'):
+	if(sec_choice == 'None'):
 
-		power = item_choice[1] / 10
-		if('sword' in item_choice or 'axe' in item_choice):
-			
+		if 'sword' in item or 'axe' in item:
+			print('The selected ability will increase defence by: ', power1)
 			
 		
-		if('chainbody' in item_choice or 'platemale' in item_choice):
-			print('The selected ability will increase defence by: ', power)
+		if 'chainbody' in item or 'platemale' in item:
+			print('The selected ability will increase defence by: ', power1)
+
+
+	if card_type(item) == 'weapon' and card_type(sec_choice) == 'weapon':
+		print('The selected ability will attack for: ', power1+power2)
+
+	if card_type(item) == 'weapon' and card_type(sec_choice) == 'armor':
+		print('The selected ability will attack for: ', power1)
+		print('The selected ability will increase defence by: ', power2)
+
+	if card_type(item) == 'armor' and card_type(sec_choice) == 'weapon':
+		print('The selected ability will attack for: ', power2)
+		print('The selected ability will increase defence by: ', power1)
+			
+		
+	if card_type(item) == 'armor' and card_type(sec_choice) == 'armor':
+		print('The selected ability will increase defence by: ', power1+power2)
+
 
 
 def check_dmg(info,count):
@@ -583,6 +614,25 @@ def check_def(info,count):
 	armor = info[count][5][1][0][1]	
 	defe = (armor / 20) + 1
 	return defe
+
+
+def card_type(item):
+
+	if 'sword' in str(item) or 'axe' in str(item):
+			return 'weapon'
+
+	if 'chainbody' in str(item) or 'platemale' in str(item):
+			return 'armor'
+
+
+	return 'NA'
+
+
+def skills(skill):
+	
+	if 'hone' in str(skill):
+		
+	
 
 
 def equip(items,num):
