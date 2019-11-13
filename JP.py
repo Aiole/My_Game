@@ -31,7 +31,7 @@ b = int(b)
 
 map = np.chararray((b,b), unicode = True)
 
-map[:] = '0'
+map[:] = 'O'
 
 map[0,:] = 'X'
 
@@ -49,9 +49,9 @@ player_level = 0
 attack_list = ['hone','enlighten','entrench']
 cords = [5,5]
 start_spawn = [5,5]
-axe = ['axe',random.randrange(1,20)]
+axe = ['axe',random.randrange(1,25)]
 sword = ['sword',random.randrange(1,20)]
-chainbody = ['chainbody',random.randrange(1,20)]
+chainbody = ['chainbody',random.randrange(1,25)]
 platemale = ['platemale',random.randrange(1,20)]
 weapons = [axe,sword]
 armor = [chainbody,platemale]
@@ -323,78 +323,121 @@ def battle(info,enemy_count):
 	e_def = check_def(info,enemy_count)
 	player_health = 20	
 	enemy_health = 20
+	y_speed = 0
+	e_speed = 0
 
 	a = 0
 
+	battle_info = []
+	ori_hand = []
+	y_discard = []
 
 	while len(y_deck) > 0 and a < 5:
-		y_hand.append(y_deck[0])
-		y_deck.pop(0)
+		y_hand.append(y_deck.pop(0))
 		a+=1
-		
 	
-	ability = []
-	ori_hand = []
-	ability = first_selection(ori_hand,y_hand,y_skills)
 
-
-
-	
 	while player_health > 0 and enemy_health > 0:
-
-		print("Choose an attack from the list")
-		attack_input = input(attack_list)
-	
-		if attack_input == 'hit':
-			enemy_health -= y_attack_level / e_def
-	
-		if attack_input == 'heal':
-			player_health += 1
-
-		if attack_input == 'hit hard':
-			enemy_health -= (y_attack_level * 2) / e_def
-
-		print('your enemies health: ')
-		print(enemy_health)
-		print('your health: ')
-		print(player_health)			
-	
-		if player_health <= 0:
-			break
 		
+	
+		battle_info, y_hand, y_discard = first_selection(ori_hand,y_hand,y_skills,y_discard)
+		y_deck += y_discard
+		y_speed += battle_info[5]
+		e_speed += 100	
+		print("this is my speed ", y_speed, "this is the enemy speed ", e_speed)
 
-		if enemy_health <= 0:
-			break
+
+		while(1):
+			y_speed -= 1
+			e_speed -= 1
+			
+			if(y_speed <= 0):
+				turnflag = 1
+				break
+
+			if(e_speed <= 0):
+				turnflag = 0
+				break
 
 
-		attack_choice = random.randrange(1,4)
+		if(turnflag):
+			enemy_health -= battle_info[0] 
+			player_health += battle_info[2]
+			y_hand.append(y_deck.pop(0))
+			print('your enemies health: ')
+			print(enemy_health)
+			print('your health: ')
+			print(player_health)
+			
+			if player_health <= 0:
+				break
+			if enemy_health <= 0:
+				break
 
 
-		if attack_choice == 1:
-				player_health -= e_attack_level / y_def
+			attack_choice = random.randrange(1,4)
+			if attack_choice == 1:
+					player_health -= 1 / battle_info[1]
 		
-		if attack_choice == 2:
-				player_health -= e_attack_level / y_def
+			if attack_choice == 2:
+					player_health -= 1 / battle_info[1]
 	
 
-		if attack_choice == 3:
-				player_health -= (e_attack_level*2) / y_def 
+			if attack_choice == 3:
+					player_health -= 1 / battle_info[1] 
+	
+			print("enemy used:")
+			print(attack_list[attack_choice - 1])
+			print('your enemies health: ')
+			print(enemy_health)
+			print('your health: ')
+			print(player_health)
+			
+			if player_health <= 0:
+				break
+
+			if enemy_health <= 0:
+				break
+
+		else:
+			attack_choice = random.randrange(1,4)
+			if attack_choice == 1:
+					player_health -= 1 / battle_info[1]
+		
+			if attack_choice == 2:
+					player_health -= 1 / battle_info[1]
 	
 
-		print("enemy used:")
-		print(attack_list[attack_choice - 1])
-		print('your enemies health: ')
-		print(enemy_health)
-		print('your health: ')
-		print(player_health)
-		
-		
-		if player_health <= 0:
-			break
-		
+			if attack_choice == 3:
+					player_health -= 1 / battle_info[1] 
+	
+			print("enemy used:")
+			print(attack_list[attack_choice - 1])
+			print('your enemies health: ')
+			print(enemy_health)
+			print('your health: ')
+			print(player_health)
+			
+			if player_health <= 0:
+				break
 
-		if enemy_health <= 0:
-			break
+			if enemy_health <= 0:
+				break
+
+
+
+			enemy_health -= battle_info[0] 
+			player_health += battle_info[2]
+			y_hand.append(y_deck.pop(0))
+			print('your enemies health: ')
+			print(enemy_health)
+			print('your health: ')
+			print(player_health)
+			
+			if player_health <= 0:
+				break
+			if enemy_health <= 0:
+				break
 	
 
 	if player_health <= 0:
@@ -439,7 +482,7 @@ def battle(info,enemy_count):
 	return info
 
 
-def first_selection(ori_hand,hand,skills):
+def first_selection(ori_hand,hand,skills,y_discard):
 
 	ori_hand = hand[:]
 	print ('This is your hand: ',hand)
@@ -455,17 +498,18 @@ def first_selection(ori_hand,hand,skills):
 			
 			print('you have selected ', item)
 			item_choice = item 
-			hand.pop(a)
-			return sec_selection(ori_hand,hand,skills,item_choice)			
+			y_discard.append(hand.pop(a))
+			
+			return sec_selection(ori_hand,hand,skills,item_choice,y_discard)			
 
 		a+=1
 
 					
 
-	return first_selection(ori_hand,hand,skills)
+	return first_selection(ori_hand,hand,skills,y_discard)
 
 
-def sec_selection(ori_hand,hand,skills,item_choice):
+def sec_selection(ori_hand,hand,skills,item_choice,y_discard):
 
 	print ('This is your hand: ', hand)
 	print('These are your skills: ', skills)
@@ -475,7 +519,7 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 
 	if (str(player_input) == 'done'):
 
-		return confirm_attack(ori_hand,hand,skills,item_choice,'None')
+		return confirm_attack(ori_hand,hand,skills,item_choice,'None',y_discard)
 	
 
 	a = 0
@@ -485,7 +529,7 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 			
 			print('you have selected ', item)
 			print(type(item))
-			return confirm_attack(ori_hand,hand,skills,item_choice,item)			
+			return confirm_attack(ori_hand,hand,skills,item_choice,item,a,y_discard)			
 
 		a+=1
 
@@ -496,7 +540,7 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 		
 			print('you have selected ', skill)
 			print(type(skill))
-			return confirm_attack(ori_hand,hand,skills,item_choice,skill)			
+			return confirm_attack(ori_hand,hand,skills,item_choice,skill,None,y_discard)			
 
 		a+=1
 
@@ -504,11 +548,13 @@ def sec_selection(ori_hand,hand,skills,item_choice):
 			
 		
 
-	return sec_selection(ori_hand,hand,skills,item_choice)
+	return sec_selection(ori_hand,hand,skills,item_choice,y_discard)
 
 
 
-def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice):
+def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice,a,y_discard):
+
+	battle_info = []
 
 	#item only
 	if(sec_choice == 'None'):
@@ -527,75 +573,110 @@ def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice):
 				return [item_choice, sec_choice]
 
 			if(str(player_input) == 'back'):
-				return sec_selection(ori_hand,hand,skills,item_choice)
+				return sec_selection(ori_hand,hand,skills,item_choice,y_discard)
 			
 			if(str(player_input) == 'restart'):
-				return first_selection(ori_hand,ori_hand,skills)
+				return first_selection(ori_hand,ori_hand,skills,[])
 				
-
-	#item + item combination
-	if(type(sec_choice) == list):
 		
+	while(1):
 
-		while(1):
-			player_input = input('type either confirm, restart to rechoose an initial item or back to rechoose a secondary item or skill: ')
-			
-			if(str(player_input) == 'confirm'):
-				return check_ability()
 
-			if(str(player_input) == 'back'):
-				return sec_selection(ori_hand,hand,skills,item_choice)
-			
-			if(str(player_input) == 'restart'):
-				return first_selection(ori_hand,ori_hand,skills)
+		battle_info = check_ability(item_choice,sec_choice)
+
+		player_input = input('type either confirm, restart to rechoose an initial item or back to rechoose a secondary item or skill: ')				
+
+		if(str(player_input) == 'confirm'):
+
+			if(a != None):
+
+				y_discard.append(hand.pop(a))
+
+			return battle_info, hand, y_discard
+
+		if(str(player_input) == 'back'):
+			return sec_selection(ori_hand,hand,skills,item_choice,y_discard)
 		
+		if(str(player_input) == 'restart'):
+			return first_selection(ori_hand,ori_hand,skills,[])
+	
 
 
-
-	#item + skill combination
-	if(type(sec_choice) == str):
-		p
-
-
-	return sec_selection(ori_hand,hand,skills,item_choice)
+	return sec_selection(ori_hand,hand,skills,item_choice,y_discard)
 
 
 
 def check_ability(item,sec_choice):
 
 	attack = 0
-	defence = 0
+	defence = 1
 	healing = 0
-	buff = []
+	buff = [] # [attack buff, defence buff, etc...]
 	debuff = []
 	power1 = item[1] / 10
-	power2 = sec_choice[1] / 10
-	ability_list = []
+	skill_info = []
+	speed = 100
+	battle_info = [attack,defence,healing,buff,debuff,speed]
 
-	if(sec_choice == 'None'):
+	if 'sword' in item:
+		battle_info[0] = power1
+		speed = 100
 
-		if 'sword' in item or 'axe' in item:
-			print('The selected ability will increase defence by: ', power1)
-			
+	if 'axe' in item:
+		battle_info[0] = power1
+		speed = 125
+	
+	if 'chainbody' in item:
+		battle_info[1] = power1
+		speed = 100
+	
+	if 'platemale' in item:
+		battle_info[1] += power1
+		speed = 125
+
+	if card_type(item) == 'weapon':
+		battle_info[0] += power1
+
+	if card_type(item) == 'armor':
+		battle_info[1] += power1
+
+	if card_type(sec_choice) == 'armor':
+		power2 = sec_choice[1] / 10
+		battle_info[0] += power2
+
+		if 'chainbody' in sec_choice:
+			speed = (speed + 100) / 2
+	
+		if 'platemale' in sec_choice:
+			speed = (speed + 125) / 2
 		
-		if 'chainbody' in item or 'platemale' in item:
-			print('The selected ability will increase defence by: ', power1)
 
+	if card_type(sec_choice) == 'weapon':
+		power2 = sec_choice[1] / 10
+		battle_info[1] += power2
 
-	if card_type(item) == 'weapon' and card_type(sec_choice) == 'weapon':
-		print('The selected ability will attack for: ', power1+power2)
-
-	if card_type(item) == 'weapon' and card_type(sec_choice) == 'armor':
-		print('The selected ability will attack for: ', power1)
-		print('The selected ability will increase defence by: ', power2)
-
-	if card_type(item) == 'armor' and card_type(sec_choice) == 'weapon':
-		print('The selected ability will attack for: ', power2)
-		print('The selected ability will increase defence by: ', power1)
-			
+		if 'sword' in sec_choice:
+			speed = (speed + 100) / 2
+	
+		if 'axe' in sec_choice:
+			speed = (speed + 125) / 2
 		
-	if card_type(item) == 'armor' and card_type(sec_choice) == 'armor':
-		print('The selected ability will increase defence by: ', power1+power2)
+
+	if card_type(sec_choice) == 'NA':
+		skill_info = skills(sec_choice)
+
+		if (skill_info[0] == "buff"):
+			battle_info[skill_info[1]] *= skill_info[2] 
+
+		if (skill_info[0] == "healing"):
+			battle_info[2] += skill_info[2]
+
+
+	print(speed)
+	battle_info[5] = speed
+		
+
+	return battle_info
 
 
 
@@ -630,8 +711,16 @@ def card_type(item):
 
 def skills(skill):
 	
+	skill_info = []
+
 	if 'hone' in str(skill):
+		return ['buff', 0, 1.5] #[type, number in type array, power]
 		
+	if 'enlighten' in str(skill):
+		return ['healing', 0, .5]
+	
+	if 'entrench' in str(skill):
+		return ['buff', 1, 1.5]
 	
 
 
