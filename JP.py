@@ -49,11 +49,12 @@ player_level = 0
 attack_list = ['hone','enlighten','entrench']
 cords = [5,5]
 start_spawn = [5,5]
-axe = ['axe',random.randrange(1,25)]
-sword = ['sword',random.randrange(1,20)]
-chainbody = ['chainbody',random.randrange(1,25)]
-platemale = ['platemale',random.randrange(1,20)]
-weapons = [axe,sword]
+dagger = ['dagger',random.randrange(8,15)]
+axe = ['axe',random.randrange(18,25)]
+sword = ['sword',random.randrange(13,20)]
+chainbody = ['chainbody',random.randrange(18,25)]
+platemale = ['platemale',random.randrange(13,20)]
+weapons = [axe,sword,dagger]
 armor = [chainbody,platemale]
 items = [weapons,armor]
 max_cord = b
@@ -105,11 +106,12 @@ def initialize(a, b, info, lines):
 	ver = random.randrange(1,b-2)
 	hor = random.randrange(1,b-2)
 	cords = [ver,hor]
-	axe = [rand_adj(lines) + ' axe', random.randrange(1,20)]
-	sword = [rand_adj(lines) + ' sword', random.randrange(1,20)]
-	chainbody = [rand_adj(lines) + ' chainbody', random.randrange(1,20)]
-	platemale = [rand_adj(lines) + ' platemale', random.randrange(1,20)]
-	weapons = [axe,sword]
+	dagger = [rand_adj(lines) + ' dagger', random.randrange(8,15)]
+	axe = [rand_adj(lines) + ' axe', random.randrange(18,25)]
+	sword = [rand_adj(lines) + ' sword', random.randrange(13,20)]
+	chainbody = [rand_adj(lines) + ' chainbody', random.randrange(18,25)]
+	platemale = [rand_adj(lines) + ' platemale', random.randrange(13,20)]
+	weapons = [axe,sword,dagger]
 	armor = [chainbody,platemale]
 	items = [weapons,armor]
 	max_cord = b
@@ -319,38 +321,64 @@ def battle(info,enemy_count):
 	e_exp = info[enemy_count][1]
 	y_attack_level = check_dmg(info,0)
 	e_attack_level = check_dmg(info,enemy_count)			
-	y_def = check_def(info,0)
-	e_def = check_def(info,enemy_count)
-	player_health = 20	
-	enemy_health = 20
+	y_def = 0
+	e_def = 0
+	player_health = 10	
+	enemy_health = 10
 	y_speed = 0
 	e_speed = 0
 
 	a = 0
 
+	e_battle_info = []
 	battle_info = []
 	ori_hand = []
 	y_discard = []
+	
 
 	while len(y_deck) > 0 and a < 5:
 		y_hand.append(y_deck.pop(0))
 		a+=1
 	
+	a = 0
+
+	while len(e_deck) > 0 and a < 5:
+		e_hand.append(e_deck.pop(0))
+		a+=1
+
+	battle_info, y_hand, y_discard = first_selection(ori_hand,y_hand,y_skills,y_discard)
+	y_deck += y_discard
+	y_speed += battle_info[5]
+	y_def += battle_info[1]
+	y_discard = []
+	
+
+	e_battle_info, e_hand, e_discard = enemy_selection(e_hand,e_skills)
+	print("enemy discard = ", e_discard)
+	e_deck += [e_discard[0]]
+	print(len(e_discard))
+
+	if len(e_discard) > 1:
+		print("2 items used here")
+		e_deck += [e_discard[1]]
+
+	print("enemy deck = " ,e_deck, ", " ,"enemy hand = ", e_hand)
+	e_speed += e_battle_info[5]
+	e_def += e_battle_info[1]
+	e_discard = []
+
 
 	while player_health > 0 and enemy_health > 0:
-		
 	
-		battle_info, y_hand, y_discard = first_selection(ori_hand,y_hand,y_skills,y_discard)
-		y_deck += y_discard
-		y_speed += battle_info[5]
-		e_speed += 100	
-		print("this is my speed ", y_speed, "this is the enemy speed ", e_speed)
 
+		print("this is my speed ", y_speed, "this is the enemy speed ", e_speed)
 
 		while(1):
 			y_speed -= 1
 			e_speed -= 1
 			
+			print("this is my speed ", y_speed, "this is the enemy speed ", e_speed)		
+		
 			if(y_speed <= 0):
 				turnflag = 1
 				break
@@ -361,63 +389,57 @@ def battle(info,enemy_count):
 
 
 		if(turnflag):
-			enemy_health -= battle_info[0] 
-			player_health += battle_info[2]
+			print("attack = ",battle_info[0])
+			enemy_health -= battle_info[0] / (e_def + 1)
+			player_health += (battle_info[2] / 10)
 			y_hand.append(y_deck.pop(0))
-			print('your enemies health: ')
-			print(enemy_health)
-			print('your health: ')
-			print(player_health)
 			
 			if player_health <= 0:
 				break
 			if enemy_health <= 0:
 				break
-
-
-			attack_choice = random.randrange(1,4)
-			if attack_choice == 1:
-					player_health -= 1 / battle_info[1]
+			print('your enemies defence: ', e_def)
+			print('your enemies health: ')
+			print(enemy_health)
+			print('your health: ')
+			print(player_health)
+	
+			battle_info, y_hand, y_discard = first_selection(ori_hand,y_hand,y_skills,y_discard)
+			y_deck += y_discard
+			y_speed += battle_info[5]
+			y_def += battle_info[1]
+			y_discard = []
 		
-			if attack_choice == 2:
-					player_health -= 1 / battle_info[1]
-	
 
-			if attack_choice == 3:
-					player_health -= 1 / battle_info[1] 
-	
-			print("enemy used:")
-			print(attack_list[attack_choice - 1])
-			print('your enemies health: ')
-			print(enemy_health)
-			print('your health: ')
-			print(player_health)
+
 			
-			if player_health <= 0:
-				break
-
-			if enemy_health <= 0:
-				break
-
 		else:
-			attack_choice = random.randrange(1,4)
-			if attack_choice == 1:
-					player_health -= 1 / battle_info[1]
-		
-			if attack_choice == 2:
-					player_health -= 1 / battle_info[1]
-	
+			player_health -= e_battle_info[0] / (y_def + 1)
+			enemy_health += (e_battle_info[2] / 10)
+			e_hand.append(e_deck.pop(0))
 
-			if attack_choice == 3:
-					player_health -= 1 / battle_info[1] 
-	
-			print("enemy used:")
-			print(attack_list[attack_choice - 1])
+			print('your defence: ', y_def)
 			print('your enemies health: ')
 			print(enemy_health)
 			print('your health: ')
 			print(player_health)
 			
+	
+			
+			e_battle_info, e_hand, e_discard = enemy_selection(e_hand,e_skills)
+			print("enemy discard = ", e_discard)
+			e_deck += [e_discard[0]]
+			print(len(e_discard))
+
+			if len(e_discard) > 1:
+				print("2 items used here")
+				e_deck += [e_discard[1]]
+
+			print("enemy deck = " ,e_deck, ", " ,"enemy hand = ", e_hand)
+			e_speed += e_battle_info[5]
+			e_def += e_battle_info[1]
+			e_discard = []
+
 			if player_health <= 0:
 				break
 
@@ -425,20 +447,6 @@ def battle(info,enemy_count):
 				break
 
 
-
-			enemy_health -= battle_info[0] 
-			player_health += battle_info[2]
-			y_hand.append(y_deck.pop(0))
-			print('your enemies health: ')
-			print(enemy_health)
-			print('your health: ')
-			print(player_health)
-			
-			if player_health <= 0:
-				break
-			if enemy_health <= 0:
-				break
-	
 
 	if player_health <= 0:
 		e_exp += (y_exp / 2) + 1
@@ -480,6 +488,48 @@ def battle(info,enemy_count):
 
 
 	return info
+
+def enemy_selection(hand,skills):
+	
+	discard = []
+	hand_choice = random.randrange(0,len(hand))
+	item_choice = hand[hand_choice]
+	discard.append(hand.pop(hand_choice))
+	temp_e_choice = random.randrange(1,4)
+	
+	print("enemy rng = ",temp_e_choice)
+	
+	if temp_e_choice == 1:
+
+		print("enemy used 1 item ", item_choice)
+		battle_info = check_ability(item_choice,'None')
+		
+
+	if temp_e_choice == 2:
+
+		skill_choice = skills[random.randrange(0,3)]
+		print("enemy used 1 item and 1 skill ",item_choice,", " ,skill_choice)
+		battle_info = check_ability(item_choice,skill_choice)
+
+	if temp_e_choice == 3:
+
+ 
+		if len(hand) > 0:
+	
+			if len(hand) > 1:
+				hand_choice = random.randrange(0,len(hand))
+			else:
+				hand_choice = 0
+		
+			print("enemy used 2 items ", item_choice,", ", hand[hand_choice])		
+			battle_info = check_ability(item_choice,hand[hand_choice])
+			discard.append(hand.pop(hand_choice))
+		else:
+			print("enemy tried to use 2 items but didnt have a big enough hand")
+			battle_info = check_ability(item_choice,skills[random.randrange(0,3)])
+
+
+	return battle_info, hand, discard
 
 
 def first_selection(ori_hand,hand,skills,y_discard):
@@ -540,7 +590,7 @@ def sec_selection(ori_hand,hand,skills,item_choice,y_discard):
 		
 			print('you have selected ', skill)
 			print(type(skill))
-			return confirm_attack(ori_hand,hand,skills,item_choice,skill,None,y_discard)			
+			return confirm_attack(ori_hand,hand,skills,item_choice,skill,'None',y_discard)			
 
 		a+=1
 
@@ -588,7 +638,7 @@ def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice,a,y_discard):
 
 		if(str(player_input) == 'confirm'):
 
-			if(a != None):
+			if(a != 'None'):
 
 				y_discard.append(hand.pop(a))
 
@@ -609,7 +659,7 @@ def confirm_attack(ori_hand,hand,skills,item_choice,sec_choice,a,y_discard):
 def check_ability(item,sec_choice):
 
 	attack = 0
-	defence = 1
+	defence = 0
 	healing = 0
 	buff = [] # [attack buff, defence buff, etc...]
 	debuff = []
@@ -617,32 +667,42 @@ def check_ability(item,sec_choice):
 	skill_info = []
 	speed = 100
 	battle_info = [attack,defence,healing,buff,debuff,speed]
+	battle_info[1] = 0
 
-	if 'sword' in item:
+	
+
+	if 'sword' in item[0]:
 		battle_info[0] = power1
 		speed = 100
+		print("sword")
 
-	if 'axe' in item:
+	if 'axe' in item[0]:
 		battle_info[0] = power1
 		speed = 125
+		print("axe")
+
+	if 'dagger' in item[0]:
+		battle_info[0] = power1
+		speed = 75
+		print("dagger")
 	
-	if 'chainbody' in item:
-		battle_info[1] = power1
+	if 'chainbody' in item[0]:
+		battle_info[1] = power1/10
 		speed = 100
 	
-	if 'platemale' in item:
-		battle_info[1] += power1
+	if 'platemale' in item[0]:
+		battle_info[1] = power1/10
 		speed = 125
 
 	if card_type(item) == 'weapon':
-		battle_info[0] += power1
+		battle_info[0] = power1
 
 	if card_type(item) == 'armor':
-		battle_info[1] += power1
+		battle_info[1] = power1 / 10
 
 	if card_type(sec_choice) == 'armor':
-		power2 = sec_choice[1] / 10
-		battle_info[0] += power2
+		power2 = sec_choice[1] / 100
+		battle_info[1] += power2
 
 		if 'chainbody' in sec_choice:
 			speed = (speed + 100) / 2
@@ -653,26 +713,37 @@ def check_ability(item,sec_choice):
 
 	if card_type(sec_choice) == 'weapon':
 		power2 = sec_choice[1] / 10
-		battle_info[1] += power2
+		battle_info[0] += power2
 
-		if 'sword' in sec_choice:
+		if 'sword' in sec_choice[0]:
 			speed = (speed + 100) / 2
 	
-		if 'axe' in sec_choice:
+		if 'axe' in sec_choice[0]:
 			speed = (speed + 125) / 2
+
+		if 'dagger' in sec_choice[0]:
+			speed = (speed + 75) / 2
+		
 		
 
-	if card_type(sec_choice) == 'NA':
+	if card_type(sec_choice) == 'Skill':
+
+		print("skill = ", sec_choice)
+
 		skill_info = skills(sec_choice)
+		
+
+		print("battle info index = ",skill_info[1])
 
 		if (skill_info[0] == "buff"):
+			print("buff multiplier = ", skill_info[2])
 			battle_info[skill_info[1]] *= skill_info[2] 
 
 		if (skill_info[0] == "healing"):
 			battle_info[2] += skill_info[2]
 
-
-	print(speed)
+	print("attack = ",battle_info[0])
+	print("speed = ",speed)
 	battle_info[5] = speed
 		
 
@@ -699,12 +770,14 @@ def check_def(info,count):
 
 def card_type(item):
 
-	if 'sword' in str(item) or 'axe' in str(item):
+	if 'sword' in str(item[0]) or 'axe' in str(item[0]) or 'dagger' in str(item[0]):
 			return 'weapon'
 
-	if 'chainbody' in str(item) or 'platemale' in str(item):
+	if 'chainbody' in str(item[0]) or 'platemale' in str(item[0]):
 			return 'armor'
 
+	if 'Skill' in str(item) or 'hone' in str(item) or 'entrench' in str(item) or 'enlighten' in str(item):
+			return "Skill"
 
 	return 'NA'
 
