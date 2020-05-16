@@ -21,12 +21,41 @@ from Map import road
 from random import shuffle
 from graphics import *
 
+win = GraphWin('Face', 800, 600) # give title and dimensions
+enemies = []
+
+class CreateEnemy:
+	
+	def __init__(self,cords,health,size,color):
+		self.c = cords
+		self.h = health
+		self.s = size
+		self.clr = color
+
+	def draw_enemy(self):
+		self.n = Circle(Point(self.c[0],self.c[1]), self.s)
+		self.n.setFill(self.clr)
+		self.n.draw(win)
+	
+	def enemy_hit(self,x,y):
+		if(self.c[0] + self.s >= x >= self.c[0] - self.s and self.c[1] + self.s >= y >= self.c[1] - self.s):
+			print(self.n)
+			self.n.undraw()
+
+i = 0		
+while i < 10:		
+	cords = [0,0]	
+	cords[0] = random.randrange(1,799)
+	cords[1] = random.randrange(1,599)
+	size = random.randrange(10,50)
+	enemies.append(CreateEnemy(cords,20,size,"red",))
+	enemies[i].draw_enemy()
+	i+=1
 
 
 dx, dy = 10, 0
 key = 0
 
-win = GraphWin('Face', 800, 600) # give title and dimensions
 
 head = Circle(Point(400,500), 25) # set center and radius
 head.setFill("yellow")
@@ -59,17 +88,16 @@ while(1):
 	if(p != None):
 		if (line):
 			line.undraw()
-		print(p)
 		x = p.x
 		y = p.y
 		line = Line(Point(mcx,mcy), Point(x,y))
 		line.draw(win)
-		print(str(x) + ', ' + str(y))
+		for enemy in enemies:			
+			enemy.enemy_hit(x,y)
 		count_1 = 0
 
 	count_1+=1
 	
-
 
 
 
